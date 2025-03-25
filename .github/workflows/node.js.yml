@@ -1,7 +1,4 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
-
-name: Node.js CI
+name: Three-Tier App CI/CD
 
 on:
   push:
@@ -10,22 +7,113 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
-
+  build-frontend:
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x, 22.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
-
     steps:
-    - uses: actions/checkout@v4
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    - run: npm ci
-    - run: npm run build --if-present
-    - run: npm test
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          cd my-app/frontend
+          npm ci
+
+      - name: Build React app
+        run: |
+          cd my-app/frontend
+          npm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: my-app/frontend/build
+
+  build-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          cd my-app/backend
+          npm ci
+
+      - name: Run tests
+        run: |
+          cd my-app/backend
+          npm test
+
+      - name: Build Docker image for backend
+        run: |
+          docker build -t my-backend-image:latest ./my-app/backend
+
+      - name: Upload backend image
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-image
+          path: my-app/backend/Dockerfile
+
+  push-docker-images:
+    needs: [build-frontend, build-backend]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Build and push frontend image
+        run: |
+          docker build -t my-docker-user/frontend:latest ./my-app/frontend
+          docker tag my-docker-user/frontend:latest my-docker-user/frontend:${{ github.sha }}
+          docker push my-docker-user/frontend:latest
+          docker push my-docker-user/frontend:${{ github.sha }}
+
+      - name: Build and push backend image
+        run: |
+          docker build -t my-docker-user/backend:latest ./my-app/backend
+          docker tag my-docker-user/backend:latest my-docker-user/backend:${{ github.sha }}
+          docker push my-docker-user/backend:latest
+          docker push my-docker-user/backend:${{ github.sha }}
+
+  deploy-to-k8s:
+    needs: [push-docker-images]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Kubernetes CLI
+        uses: azure/setup-kubectl@v3
+        with:
+          version: v1.27.0
+
+      - name: Configure Kubeconfig
+        run: |
+          echo "${{ secrets.KUBECONFIG }}" | base64 --decode > kubeconfig
+          export KUBECONFIG=$(pwd)/kubeconfig
+
+      - name: Apply Kubernetes manifests
+        run: |
+          kubectl apply -f k8s/mongo-deployment.yaml
+          kubectl apply -f k8s/backend-deployment.yaml
+          kubectl apply -f k8s/frontend-deployment.yaml
+          kubectl apply -f k8s/nginx-deployment.yaml
+
+      - name: Verify Deployment
+        run: kubectl get pods -n my-namespace
