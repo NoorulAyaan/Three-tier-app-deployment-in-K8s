@@ -1,104 +1,51 @@
-name: Three-Tier App CI/CD (React + Node + MongoDB + Nginx)
+name: Three-Tier CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ main ]
-
-env:
-  DOCKER_REGISTRY: docker.io
-  FRONTEND_IMAGE: ${{ secrets.DOCKER_HUB_USERNAME }}/three-tier-frontend
-  BACKEND_IMAGE: ${{ secrets.DOCKER_HUB_USERNAME }}/three-tier-backend
-  TAG: ${{ github.sha }}
+    branches: [ "main" ]
 
 jobs:
-  build-and-test:
+  build-frontend:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x]
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
         with:
-          submodules: 'recursive'
-
-      # Frontend Build
-      - name: Set up Node.js (v20)
-        uses: actions/setup-node@v3
-        with:
-          node-version: '20.x'
+          node-version: ${{ matrix.node-version }}
           cache: 'npm'
-      
-      - name: Install frontend dependencies
-        run: npm ci
-        working-directory: './frontend'
+      - run: cd frontend && npm install
+      - run: cd frontend && npm run build --if-present
+      - run: cd frontend && npm test --if-present
 
-      - name: Run frontend tests
-        run: npm test
-        working-directory: './frontend'
-
-      - name: Build React app
-        run: npm run build
-        working-directory: './frontend'
-
-      # Backend Build
-      - name: Install backend dependencies
-        run: npm ci
-        working-directory: './backend'
-
-      - name: Run backend tests
-        run: npm test
-        working-directory: './backend'
-
-  # deploy:
-  #   needs: build-and-test
-  #   if: github.ref == 'refs/heads/main'
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v3
-
-  #     # Login to Docker Hub
-  #     - name: Login to Docker Registry
-  #       uses: docker/login-action@v2
-  #       with:
-  #         username: ${{ secrets.DOCKER_HUB_USERNAME }}
-  #         password: ${{ secrets.DOCKER_HUB_TOKEN }}
-
-  #     # Build and Push Frontend (Nginx)
-  #     - name: Build and push frontend image
-  #       uses: docker/build-push-action@v4
-  #       with:
-  #         context: ./frontend
-  #         push: true
-  #         tags: ${{ env.FRONTEND_IMAGE }}:${{ env.TAG }}, ${{ env.FRONTEND_IMAGE }}:latest
-  #         file: ./frontend/Dockerfile.nginx # Ensure this exists
-
-  #     # Build and Push Backend
-  #     - name: Build and push backend image
-  #       uses: docker/build-push-action@v4
-  #       with:
-  #         context: ./backend
-  #         push: true
-  #         tags: ${{ env.BACKEND_IMAGE }}:${{ env.TAG }}, ${{ env.BACKEND_IMAGE }}:latest
-
-  #     # Deploy to Kubernetes
-  #     - name: Configure kubectl
-  #       uses: azure/setup-kubectl@v3
-
-  #     - name: Deploy to Kubernetes
-  #       run: |
-  #         kubectl config set-cluster k8s \
-  #           --server=${{ secrets.K8S_SERVER }} \
-  #           --insecure-skip-tls-verify=true
-  #         kubectl config set-credentials ci-user \
-  #           --token=${{ secrets.K8S_TOKEN }}
-  #         kubectl config set-context default \
-  #           --cluster=k8s \
-  #           --user=ci-user
-  #         kubectl config use-context default
-          
-  #         # Update image tags in manifests
-  #         sed -i "s|{{FRONTEND_IMAGE}}|${{ env.FRONTEND_IMAGE }}:${{ env.TAG }}|g" k8s/frontend-deployment.yaml
-  #         sed -i "s|{{BACKEND_IMAGE}}|${{ env.BACKEND_IMAGE }}:${{ env.TAG }}|g" k8s/backend-deployment.yaml
-          
-  #         kubectl apply -f k8s/
+  build-backend:
+    runs-on: ubuntu-latest
+    needs: build-frontend
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x]
+    services:
+      mongodb:
+        image: mongo:latest
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongo --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      - run: cd backend && npm install
+      - run: cd backend && npm run build --if-present
+      - run: cd backend && npm test --if-present
