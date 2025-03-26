@@ -49,56 +49,56 @@ jobs:
         run: npm test
         working-directory: './backend'
 
-  deploy:
-    needs: build-and-test
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+  # deploy:
+  #   needs: build-and-test
+  #   if: github.ref == 'refs/heads/main'
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v3
 
-      # Login to Docker Hub
-      - name: Login to Docker Registry
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+  #     # Login to Docker Hub
+  #     - name: Login to Docker Registry
+  #       uses: docker/login-action@v2
+  #       with:
+  #         username: ${{ secrets.DOCKER_HUB_USERNAME }}
+  #         password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
-      # Build and Push Frontend (Nginx)
-      - name: Build and push frontend image
-        uses: docker/build-push-action@v4
-        with:
-          context: ./frontend
-          push: true
-          tags: ${{ env.FRONTEND_IMAGE }}:${{ env.TAG }}, ${{ env.FRONTEND_IMAGE }}:latest
-          file: ./frontend/Dockerfile.nginx # Ensure this exists
+  #     # Build and Push Frontend (Nginx)
+  #     - name: Build and push frontend image
+  #       uses: docker/build-push-action@v4
+  #       with:
+  #         context: ./frontend
+  #         push: true
+  #         tags: ${{ env.FRONTEND_IMAGE }}:${{ env.TAG }}, ${{ env.FRONTEND_IMAGE }}:latest
+  #         file: ./frontend/Dockerfile.nginx # Ensure this exists
 
-      # Build and Push Backend
-      - name: Build and push backend image
-        uses: docker/build-push-action@v4
-        with:
-          context: ./backend
-          push: true
-          tags: ${{ env.BACKEND_IMAGE }}:${{ env.TAG }}, ${{ env.BACKEND_IMAGE }}:latest
+  #     # Build and Push Backend
+  #     - name: Build and push backend image
+  #       uses: docker/build-push-action@v4
+  #       with:
+  #         context: ./backend
+  #         push: true
+  #         tags: ${{ env.BACKEND_IMAGE }}:${{ env.TAG }}, ${{ env.BACKEND_IMAGE }}:latest
 
-      # Deploy to Kubernetes
-      - name: Configure kubectl
-        uses: azure/setup-kubectl@v3
+  #     # Deploy to Kubernetes
+  #     - name: Configure kubectl
+  #       uses: azure/setup-kubectl@v3
 
-      - name: Deploy to Kubernetes
-        run: |
-          kubectl config set-cluster k8s \
-            --server=${{ secrets.K8S_SERVER }} \
-            --insecure-skip-tls-verify=true
-          kubectl config set-credentials ci-user \
-            --token=${{ secrets.K8S_TOKEN }}
-          kubectl config set-context default \
-            --cluster=k8s \
-            --user=ci-user
-          kubectl config use-context default
+  #     - name: Deploy to Kubernetes
+  #       run: |
+  #         kubectl config set-cluster k8s \
+  #           --server=${{ secrets.K8S_SERVER }} \
+  #           --insecure-skip-tls-verify=true
+  #         kubectl config set-credentials ci-user \
+  #           --token=${{ secrets.K8S_TOKEN }}
+  #         kubectl config set-context default \
+  #           --cluster=k8s \
+  #           --user=ci-user
+  #         kubectl config use-context default
           
-          # Update image tags in manifests
-          sed -i "s|{{FRONTEND_IMAGE}}|${{ env.FRONTEND_IMAGE }}:${{ env.TAG }}|g" k8s/frontend-deployment.yaml
-          sed -i "s|{{BACKEND_IMAGE}}|${{ env.BACKEND_IMAGE }}:${{ env.TAG }}|g" k8s/backend-deployment.yaml
+  #         # Update image tags in manifests
+  #         sed -i "s|{{FRONTEND_IMAGE}}|${{ env.FRONTEND_IMAGE }}:${{ env.TAG }}|g" k8s/frontend-deployment.yaml
+  #         sed -i "s|{{BACKEND_IMAGE}}|${{ env.BACKEND_IMAGE }}:${{ env.TAG }}|g" k8s/backend-deployment.yaml
           
-          kubectl apply -f k8s/
+  #         kubectl apply -f k8s/
