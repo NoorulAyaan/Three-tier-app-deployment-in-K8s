@@ -93,14 +93,15 @@ jobs:
 
       - name: Login to DockerHub
         run: |
-          echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKER_TOKEN }}" --password-stdin
+          echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
       - name: Build and Push Frontend Image
         run: |
-          docker build -t ${{ secrets.DOCKERHUB_TOKEN }}/frontend-app:latest ./frontend
-          docker push ${{ secrets.DOCKERHUB_TOKEN }}/frontend-app:latest
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/frontend-app:latest ./frontend
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/frontend-app:latest
 
       - name: Build and Push Backend Image
         run: |
-          docker build -t ${{ secrets.DOCKERHUB_TOKEN }}/backend-app:latest ./backend
-          docker push ${{ secrets.DOCKERHUB_TOKEN }}/backend-app:latest
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:latest ./backend
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:latest
+
