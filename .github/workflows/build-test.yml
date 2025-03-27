@@ -90,16 +90,16 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-        
+
       - name: Login to DockerHub
-        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "noorulayan" --password-stdin
 
       - name: Build and Push Frontend Image
         run: |
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/frontend-app:01 ./frontend
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/frontend-app:01
+          docker build -t noorulayan/frontend-app:01 ./frontend
+          docker push noorulayan/frontend-app:01
 
       - name: Build and Push Backend Image
         run: |
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:01 ./backend
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:01
+          docker build -t noorulayan/backend-app:01 ./backend
+          docker push noorulayan/backend-app:01
