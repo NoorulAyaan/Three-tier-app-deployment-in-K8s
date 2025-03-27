@@ -40,7 +40,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -59,7 +58,6 @@ jobs:
           echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
           sudo apt update
           sudo apt install -y mongodb-mongosh
-
       - name: Wait for MongoDB to be Ready
         run: |
           for i in {1..10}; do
@@ -72,7 +70,6 @@ jobs:
           done
           echo "MongoDB did not start in time"
           exit 1
-
       - name: Build Backend
         run: cd backend && npm run build --if-present
 
@@ -80,7 +77,6 @@ jobs:
         run: |
           jq '.scripts.test = "echo \"No tests specified\" && exit 0"' backend/package.json > backend/package.tmp.json \
           && mv backend/package.tmp.json backend/package.json
-
       - name: Run Tests
         run: cd backend && npm test --if-present
 
@@ -94,11 +90,11 @@ jobs:
       - name: Login to DockerHub
         run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "noorulayan" --password-stdin
 
+
       - name: Build and Push Frontend Image
         run: |
           docker build -t noorulayan/frontend-app:01 ./frontend
           docker push noorulayan/frontend-app:01
-
       - name: Build and Push Backend Image
         run: |
           docker build -t noorulayan/backend-app:01 ./backend
