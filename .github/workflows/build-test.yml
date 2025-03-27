@@ -103,7 +103,8 @@ jobs:
 
       - name: Build and Push Backend Image
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/backend-app:latest ./backend
-          docker push ${{ secrets.DOCKER_USERNAME }}/backend-app:latest
+          docker build -t noorulayan/backend-app:latest ./backend
+          docker push noorulayan/backend-app:latest
+
 
         
