@@ -97,27 +97,11 @@ jobs:
 
       - name: Build and Push Frontend Image
         run: |
-          docker build -t noorulayan/frontend-app:latest ./frontend
-          docker push noorulayan/frontend-app:latest
+          docker build -t noorulayan/frontend-app:01 ./frontend
+          docker push noorulayan/frontend-app:01
+
 
       - name: Build and Push Backend Image
         run: |
-          docker build -t noorulayan/backend-app:latest ./backend
-          docker push noorulayan/backend-app:latest
-
-
-
-
-    #  - name: Login to DockerHub
-    #     run: |
-    #       echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_NOORULAYAN }}" --password-stdin
-
-    #   - name: Build and Push Frontend Image
-    #     run: |
-    #       docker build -t ${{ secrets.DOCKERHUB_NOORULAYAN }}/frontend-app:latest ./frontend
-    #       docker push ${{ secrets.DOCKERHUB_NOORULAYAN }}/frontend-app:latest
-
-    #   - name: Build and Push Backend Image
-    #     run: |
-    #       docker build -t ${{ secrets.DOCKERHUB_NOORULAYAN }}/backend-app:latest ./backend
-    #       docker push ${{ secrets.DOCKERHUB_NOORULAYAN }}/backend-app:latest
+          docker build -t noorulayan/backend-app:01 ./backend
+          docker push noorulayan/backend-app:01
