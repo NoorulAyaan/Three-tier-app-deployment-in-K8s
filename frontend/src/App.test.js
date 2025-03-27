@@ -1,43 +1,11 @@
 import { render, screen } from "@testing-library/react";
-import { BrowserRouter } from "react-router-dom"; // ✅ Import BrowserRouter
 import App from "./App";
 
-test("renders learn react link", () => {
-  render(
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
-  ); // ✅ Wrap App in BrowserRouter
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+test("renders login page", () => {
+  render(<App />); // ✅ No extra BrowserRouter
+  const loginText = screen.getByText(/login/i); // Adjust this based on your Login component
+  expect(loginText).toBeInTheDocument();
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
