@@ -18,8 +18,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-      - run: cd frontend && npm install
-      - run: cd frontend && npm install react-router-dom
+      - run: cd frontend && npm install && npm install react-router-dom
       - run: cd frontend && npm ci
       - run: cd frontend && npm run build --if-present
       - run: cd frontend && npm test --if-present
