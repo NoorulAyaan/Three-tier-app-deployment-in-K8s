@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: noorulayan/three-tier-application-backend:03
+          image: noorulayan/backend-app:latest
           ports:
             - containerPort: 5000
           env:

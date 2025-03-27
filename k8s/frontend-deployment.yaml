@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: noorulayan/three-tier-application-frontend:06  # Change this to your actual image
+        image: noorulayan/frontend-app:latest  # Change this to your actual image
         ports:
         - containerPort: 80
 

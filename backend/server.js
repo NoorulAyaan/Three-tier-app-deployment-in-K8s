@@ -9,7 +9,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-const MONGO_URI = process.env.MONGO_URI || "mongodb://admin:password@192.168.49.2:27017/userDB";
+const MONGO_URI = process.env.MONGO_URI || "mongodb://admin:password@http://192.168.49.2:27017/userDB";
 const JWT_SECRET = process.env.JWT_SECRET || "yourSuperSecretKey";
 
 mongoose
@@ -69,5 +69,3 @@ app.get("/", (req, res) => {
 // Fix: Make sure the correct port number is printed
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
-
-
