@@ -98,4 +98,4 @@ jobs:
       - name: Build and Push Backend Image
         run: |
           docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:01 ./backend
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:01
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:01  
