@@ -90,12 +90,77 @@ jobs:
       - name: Login to DockerHub
         run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
+      - name: Get Latest Docker Image Tag
+        id: get_latest_tag
+        run: |
+          LATEST_TAG=$(curl -s https://hub.docker.com/v2/repositories/${{ secrets.DOCKERHUB_USERNAME }}/frontend-app/tags | jq -r '.results | map(.name) | sort_by(.) | .[-1]')
+          echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
+          echo "Latest tag: $LATEST_TAG"
+
+      - name: Calculate New Tag
+        id: calculate_tag
+        run: |
+          if [[ "$LATEST_TAG" =~ ^[0-9]+$ ]]; then
+            NEW_TAG=$((LATEST_TAG + 1))
+          else
+            NEW_TAG=1
+          fi
+          echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
+          echo "New tag: $NEW_TAG"
+
       - name: Build and Push Frontend Image
         run: |
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/frontend-app:01 ./frontend
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/frontend-app:01
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/frontend-app:latest ./frontend
+          docker tag ${{ secrets.DOCKERHUB_USERNAME }}/frontend-app:latest ${{ secrets.DOCKERHUB_USERNAME }}/frontend-app:$NEW_TAG
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/frontend-app:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/frontend-app:$NEW_TAG
 
       - name: Build and Push Backend Image
         run: |
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:01 ./backend
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:01  
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:latest ./backend
+          docker tag ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:latest ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:$NEW_TAG
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:$NEW_TAG
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  # push-docker-images:
+  #   runs-on: ubuntu-latest
+  #   needs: [build-frontend, build-backend]
+  #   steps:
+  #     - name: Checkout Repository
+  #       uses: actions/checkout@v4
+
+  #     - name: Login to DockerHub
+  #       run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+  #     - name: Build and Push Frontend Image
+  #       run: |
+  #         docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/frontend-app:01 ./frontend
+  #         docker push ${{ secrets.DOCKERHUB_USERNAME }}/frontend-app:01
+
+  #     - name: Build and Push Backend Image
+  #       run: |
+  #         docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:01 ./backend
+  #         docker push ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:01  
