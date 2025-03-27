@@ -18,16 +18,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-      - name: Install dependencies
-        run: |
-          cd frontend
-          if ! npm list react-router-dom > /dev/null 2>&1; then npm install react-router-dom; fi
-          npm ci
-      - name: Build frontend
-        run: cd frontend && npm run build --if-present
-      - name: Run tests
-        run: cd frontend && npm test --if-present
+      - run: cd frontend && npm install
+      - run: cd frontend && npm install react-router-dom
+      - run: cd frontend && npm ci
+      - run: cd frontend && npm run build --if-present
+      - run: cd frontend && npm test --if-present
 
   build-backend:
     runs-on: ubuntu-latest
@@ -51,13 +46,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-      - name: Install dependencies
-        run: |
-          cd backend
-          if [ ! -f package-lock.json ]; then npm install --package-lock-only; fi
-          npm install
-      - name: Build backend
-        run: cd backend && npm run build --if-present
-      - name: Run tests
-        run: cd backend && npm test --if-present
+      - run: cd backend && npm ci
+      - run: cd backend && npm run build --if-present
+      - run: cd backend && npm test --if-present
