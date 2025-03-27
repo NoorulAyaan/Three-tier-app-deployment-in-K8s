@@ -91,8 +91,9 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Log in to Docker Hub
+      - name: Login to DockerHub
         run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "noorulayan" --password-stdin
+
 
       - name: Build and Push Frontend Image
         run: |
