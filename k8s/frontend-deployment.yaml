@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: noorulayan/frontend-app:latest  # Change this to your actual image
+        image: noorulayan/frontend-app:latest  
         ports:
         - containerPort: 80
 
@@ -25,7 +25,7 @@ kind: Service
 metadata:
   name: frontend
 spec:
-  type: NodePort  # Exposes the service on a specific port
+  type: NodePort 
   selector:
     app: frontend
   ports:
