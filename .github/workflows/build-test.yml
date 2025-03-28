@@ -126,7 +126,3 @@ jobs:
         docker push ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:$NEW_IMAGE_TAG
         docker tag ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:$NEW_IMAGE_TAG ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:latest
         docker push ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:latest
-
-
-
-
